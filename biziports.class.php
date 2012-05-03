@@ -41,13 +41,20 @@ class BiziPorts_API
 	 */
 	public function auth()
 	{
-		if(empty($this->password) || empty($this->username)) throw new Exception("API User/Pass Not Provided!");
+		$return = $this->do_request('login/do');
 
-
-		$this->do_request('api/login');
+		if($return['loggedIn'] == true) return true;
+		else return false;
 	}
 
 
+	public function checkAPILogin()
+	{
+		$return = $this->do_request('login/check');
+
+		if($return['loggedIn'] == true) return true;
+		else return false;
+	}
 
 
 
@@ -58,16 +65,19 @@ class BiziPorts_API
 	 */
 	final private function do_request($uri=null, $post=null)
 	{
+		if(empty($this->password) || empty($this->username)) throw new Exception("API Username or Password Not Provided!");
+
 		if(empty($uri)) throw new Exception("API URI Not Provided!");
 
 		$url = $this->endpoint . DS . $this->api_version . DS . $uri;
 
 		$ch = curl_init();
 
-		$headers = array("Host: ".$url);
+		$headers = array(
+			"Host: ".$url
+		);
 
-		curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-
+		curl_setopt($ch,	CURLOPT_HTTPHEADER, $headers);
 		curl_setopt($ch,	CURLOPT_URL,	$url);
 		curl_setopt($ch,	CURLOPT_HEADER,	0);
 		curl_setopt($ch,	CURLOPT_RETURNTRANSFER,	true);
@@ -75,8 +85,14 @@ class BiziPorts_API
 		$result = curl_exec($ch);
 		curl_close($ch);
 
-		// return the json result from the API Request
-		return $result;
+		// return and unserialize the json result from the API Request into a usable object
+		try {
+			return unserialize($result);
+		}
+		catch (Exception $e){
+			throw new Exception("API Result Failed!");
+		}
+		return array("ERRORS" => $e);
 	}
 
 }
