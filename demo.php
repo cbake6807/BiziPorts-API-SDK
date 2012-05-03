@@ -8,6 +8,9 @@
  *
  */
 
+// Require the BiziPorts SDK
+require("biziports.class.php");
+
 // Initialize The SDK Object
 $API = new BiziPorts_API;
 
